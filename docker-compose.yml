@@ -1,0 +1,85 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: hsm-stellar-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hsm_stellar_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_hsm_stellar_data:/var/lib/postgresql/data
+    networks:
+      - hsm-stellar-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API (NestJS)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hsm-stellar-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Server
+      PORT: 3000
+      NODE_ENV: production
+      
+      # Database
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hsm_stellar_db?schema=public
+      
+      # HSM Configuration (ajuste conforme necessário)
+      HSM_HOST: ${HSM_HOST:-127.0.0.1}
+      HSM_USER: ${HSM_USER:-alex}
+      HSM_PASS: ${HSM_PASS:-12345678}
+      
+      # Stellar
+      HORIZON_URL: https://horizon-testnet.stellar.org
+      NETWORK_PASSPHRASE: Test SDF Network ; September 2015
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hsm-stellar-network
+    volumes:
+      - ./backend/_env:/app/.env:ro
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        node dist/main
+      "
+
+  # Frontend (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hsm-stellar-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - hsm-stellar-network
+    environment:
+      - VITE_API_URL=http://localhost:3000
+      - VITE_HORIZON_URL=https://horizon-testnet.stellar.org
+      - VITE_NETWORK_PASSPHRASE=Test SDF Network ; September 2015
+
+networks:
+  hsm-stellar-network:
+    driver: bridge
+
+volumes:
+  postgres_hsm_stellar_data:
+    driver: local

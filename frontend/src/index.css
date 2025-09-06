@@ -1,0 +1,4 @@
+/* Import global TailwindCSS v4 configuration */
+@import './globals.css';
+
+/* Additional app-specific styles can be added here */

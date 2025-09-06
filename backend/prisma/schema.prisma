@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  permissions String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  keys        Key[]
+
+  @@index([userId])
+}
+
+model Key {
+  id         String   @id @default(cuid())
+  keyName    String   @unique
+  algorithm  String
+  exportable Boolean  @default(false)
+  temp       Boolean  @default(false)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  publicKey  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([keyName])
+  @@index([userId])
+}
+
+model Transaction {
+  id                String   @id @default(cuid())
+  keyId             String
+  txHash            String
+  signature         String
+  sourceAccount     String
+  destination       String?
+  amount            String?
+  status            String   @default("signed")
+  networkPassphrase String
+  createdAt         DateTime @default(now())
+
+  @@index([keyId])
+  @@index([sourceAccount])
+}
