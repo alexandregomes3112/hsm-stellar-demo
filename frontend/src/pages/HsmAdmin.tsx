@@ -235,8 +235,7 @@ export function HsmAdmin() {
             <Button 
               type="submit" 
               disabled={loading} 
-              loading={loading}
-              variant="gradient"
+              variant="default"
               size="lg"
               className="w-full sm:w-auto"
             >
@@ -333,8 +332,7 @@ export function HsmAdmin() {
             <Button 
               type="submit" 
               disabled={loading} 
-              loading={loading}
-              variant="gradient"
+              variant="default"
               size="lg"
               className="w-full sm:w-auto"
             >
@@ -396,8 +394,7 @@ export function HsmAdmin() {
             <Button 
               type="submit" 
               disabled={loading} 
-              loading={loading}
-              variant="gradient"
+              variant="default"
               size="lg"
               className="w-full sm:w-auto"
             >
