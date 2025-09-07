@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as crypto from 'node:crypto';
 import { hsm } from '@dinamonetworks/hsm-dinamo';
 import { PrismaService } from '../prisma/prisma.service';
+import { version } from 'node:os';
 
 @Injectable()
 export class HsmService {
@@ -69,11 +70,22 @@ export class HsmService {
     console.log('HSM connected to create key');
 
     try {
-      // Convert algorithm string to the appropriate enum value
-      const algEnum = algorithm as any; // HSM SDK expects specific enum type
-      const key = await c.key.create(keyName, algEnum, exp, temp);
+      // Ajuste para usar o enum correto e o método blockchain.create
+      const algEnum = hsm.enums.BLOCKCHAIN_KEYS[algorithm] || hsm.enums.BLOCKCHAIN_KEYS.BIP32_XPRV;
+      const version = hsm.enums.VERSION_OPTIONS.BIP32_MAIN_NET;
 
-      if (key) {
+      console.log({ keyName, algEnum, exp, temp, version });
+
+      // Cria a nova chave usando o método blockchain.create
+      const created = await c.blockchain.create(
+        keyName,    // Nome da chave
+        algEnum,    // Tipo
+        exp,        // Se é exportável
+        temp,       // Se é temporária
+        version     // Versão
+      );
+
+      if (created) {
         console.log(`Key 🔑"${keyName}" created successfully ✅`);
 
         // Buscar o usuário

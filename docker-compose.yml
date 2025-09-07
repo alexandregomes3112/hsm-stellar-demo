@@ -1,5 +1,4 @@
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: hsm-stellar-db
@@ -20,7 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend API (NestJS)
   backend:
     build:
       context: ./backend
@@ -30,35 +28,22 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # Server
       PORT: 3000
       NODE_ENV: production
-      
-      # Database
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hsm_stellar_db?schema=public
-      
-      # HSM Configuration (ajuste conforme necessário)
-      HSM_HOST: ${HSM_HOST:-127.0.0.1}
-      HSM_USER: ${HSM_USER:-alex}
+      HSM_HOST: ${HSM_HOST:-187.33.9.132}
+      HSM_USER: ${HSM_USER:-demoale}
       HSM_PASS: ${HSM_PASS:-12345678}
-      
-      # Stellar
       HORIZON_URL: https://horizon-testnet.stellar.org
-      NETWORK_PASSPHRASE: Test SDF Network ; September 2015
+      NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - hsm-stellar-network
-    volumes:
-      - ./backend/_env:/app/.env:ro
-    command: >
-      sh -c "
-        npx prisma migrate deploy &&
-        node dist/main
-      "
+    # Use forma de array (exec) para evitar problemas de quebra de linha
+    command: ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
 
-  # Frontend (React + Vite)
   frontend:
     build:
       context: ./frontend

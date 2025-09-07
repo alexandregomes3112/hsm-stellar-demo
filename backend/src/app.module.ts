@@ -9,9 +9,9 @@ import { PrismaModule } from './prisma/prisma.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
+  isGlobal: true,
+  ignoreEnvFile: true, // usa apenas as variáveis do ambiente do container
+  }),
     PrismaModule,
     HsmModule,
     StellarModule,
